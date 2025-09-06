@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Task Manager</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6fa; margin: 0; padding: 0; }
+    header { background: #4CAF50; color: white; padding: 15px; text-align: center; }
+    .container { padding: 20px; }
+    form, .task, .scoreboard { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; }
+    button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #45a049; }
+    .task { margin: 10px 0; }
+    .high { border-left: 5px solid red; }
+    .medium { border-left: 5px solid orange; }
+    .low { border-left: 5px solid green; }
+    .completed { text-decoration: line-through; color: gray; }
+    .scoreboard { text-align: center; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⚡ Smart Task Manager</h1>
+    <p>Manage tasks by time ⏰ + location 📍 + reminders 🔔</p>
+  </header>
+
+  <div class="container">
+    <!-- Add Task Form -->
+    <form id="taskForm">
+      <input type="text" id="title" placeholder="Task Title" required>
+      <textarea id="description" placeholder="Task Description"></textarea>
+      <input type="datetime-local" id="deadline" required>
+      <input type="text" id="location" placeholder="Enter Location (e.g., coffee shop)" required>
+      <select id="priority">
+        <option value="high">High Priority 🔴</option>
+        <option value="medium">Medium Priority 🟠</option>
+        <option value="low">Low Priority 🟢</option>
+      </select>
+      <label for="reminder">🔔 Reminder (minutes before deadline)</label>
+      <input type="number" id="reminder" value="5" min="0">
+      <button type="submit">➕ Add Task</button>
+    </form>
+
+    <!-- Task List -->
+    <h2>📋 Your Tasks</h2>
+    <div id="taskList"></div>
+
+    <!-- Gamification -->
+    <div class="scoreboard">
+      🏆 Your Points: <span id="points">0</span>
+    </div>
+  </div>
+
+  <!-- Firebase + JS Logic -->
+  <script type="module">
+    // ------------------------------
+    // 🔥 Firebase Config (Replace with your keys from Firebase Console)
+    // ------------------------------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+       apiKey: "AIzaSyCcLnvJcJ3vxZ7v6oIkhaxMbzq5tRH6JIc",
+       authDomain: "smarttaskmanager-34d84.firebaseapp.com",
+       projectId: "smarttaskmanager-34d84",
+       storageBucket: "smarttaskmanager-34d84.firebasestorage.app",
+       messagingSenderId: "1061182872732",
+       appId: "1:1061182872732:web:0b5b5c0ef630d9356ca159",
+       measurementId: "G-R7L325MT8P"
+    };
+
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const taskForm = document.getElementById("taskForm");
+    const taskList = document.getElementById("taskList");
+    const pointsEl = document.getElementById("points");
+
+    let points = 0;
+
+    // ------------------------------
+    // 📌 Add Task
+    // ------------------------------
+    taskForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const newTask = {
+        title: document.getElementById("title").value,
+        description: document.getElementById("description").value,
+        deadline: document.getElementById("deadline").value,
+        location: document.getElementById("location").value,
+        priority: document.getElementById("priority").value,
+        reminder: parseInt(document.getElementById("reminder").value),
+        completed: false,
+        createdAt: new Date()
+      };
+
+      await addDoc(collection(db, "tasks"), newTask);
+      taskForm.reset();
+    });
+
+    // --
